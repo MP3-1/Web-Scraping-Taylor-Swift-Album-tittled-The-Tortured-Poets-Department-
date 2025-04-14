@@ -1,0 +1,1860 @@
+---
+title: "Top Female Albums"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+date: "2025-03-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rvest)
+library(tidyr)
+library(tidytext)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(wordcloud2)
+library(wordcloud)
+```
+
+En la indsutria musical, uno de los mayores referentes para consultar los rankigs de los LongPlays es BilBoard. Está empresa genera diversas listas que clasifican música bajo diferentes criterios (audiencia) y carácterísiticas (género musical y fechas). En especial, el Bilboard 200 es una lista especial, pues muestra los mejores albumes del siglo 21 según Bilboard. Esta lista ha tenido un cambio significativo, pues dentro del top 10 de esta lista encontramos 6 albumes por autoras femeninas. Si bien esto habla sobre la equidad de género presente en los últimos 20 años, resulta interesante entender si estas artistas comparten algún rasgo en sus canciones y explique el éxito compartido en esta prestigiosa lista.
+
+De acerdo con lo anterior, en este análisis de datos se hará un análisis de sentimiento de estos 6 albumes, buscando formar un panorama basado en datos sobre el éxtio femenino en la industria musical. Comparar estos 6 albumes en un análisis de sentimientos permitirá identificar las emociones predominantes en estos éxitos musicales.
+
+Para esto, se harán dos secciones de análisis de sentimientos: un análisis comparando todas las canciones individuales de los 6 albumes, y una segunda comparando todas las canciones en su respectivo album.
+
+Album #1 Taylor Swift, The Tortured Poets Department 
+
+En el desarrollo de este web scraping, vemos que la página utilizada para leer las letras de las canciones presenta palabras que pueden ser omitidas de forma consistente.
+Mejor conocidas como "stop-words", vamos a consolidar un listado de palabras que pueden ser omitidas en todas las canciones, incluse después de haber removido las stop words "predispuestas" por los paquetes (tidytext) utilizados
+
+Stop
+```{r Stop_words}
+Stop_Words_2<- c("taylor", "swift", "post", "malone","lyrics", 
+                 "Lyrics", "chorus", "Chorus", "verse", "ll", 
+                 "ve", "musixmatch", "tag")
+Stop_Words_2_df <- tibble(word = Stop_Words_2)
+
+options(timeout = 1000)
+  
+```
+
+Track #1- Fortnight
+
+```{r Track #1}
+Pagina_de_Musica_1<-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Fortnight-Post-Malone")
+
+Letra<-html_nodes(Pagina_de_Musica_1, ".r-1v1z2uz")%>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Fortnight_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Fortnight_2024, col = "text")
+
+Letra_de_Fortnight_2024<-Letra_de_Fortnight_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_1)
+
+Conteo_Letra_de_Fortnight_2024<- Letra_de_Fortnight_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Fortnight_2024)<- c("n", "word")
+
+Letra_de_Fortnight_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 3) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Numb") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+
+```
+
+```{r}
+wordcloud2(Conteo_Letra_de_Fortnight_2024, shape = "triangle-forward", , color = "random-light", backgroundColor = "black")
+```
+
+```{r}
+
+Letra_de_Fortnight_2024<- Letra_de_Fortnight_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Fortnight_2024<- Letra_de_Fortnight_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Fortnight_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Fortnight", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+```
+
+```{r}
+Conteo_Letra_de_Fortnight_2024<- Letra_de_Fortnight_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Fortnight_2024, shape = "star", color = "random-light", backgroundColor = "black")
+```
+
+
+
+Track #2- The Tortured Poets Department.
+```{r Track #2}
+Pagina_de_Musica_2 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Tortured-Poets-Department-1")
+Letra <- html_nodes(Pagina_de_Musica_2, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_Tortured_Poets_Department_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_Tortured_Poets_Department_2024, col = "text")
+
+Letra_de_The_Tortured_Poets_Department_2024<-Letra_de_The_Tortured_Poets_Department_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_2)
+
+Conteo_Letra_de_The_Tortured_Poets_Department_2024<- Letra_de_The_Tortured_Poets_Department_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_Tortured_Poets_Department_2024)<- c("n", "word")
+
+Letra_de_The_Tortured_Poets_Department_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 3) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Tortured Poets Department") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_Tortured_Poets_Department_2024, shape = "cpentagon", color = "random-light", backgroundColor = "black")
+
+
+Letra_de_The_Tortured_Poets_Department_2024<- Letra_de_The_Tortured_Poets_Department_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_Tortured_Poets_Department_2024<-
+Letra_de_The_Tortured_Poets_Department_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_Tortured_Poets_Department_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Tortured Poets Department", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_Tortured_Poets_Department_2024<- Letra_de_The_Tortured_Poets_Department_2024 %>% 
+count(word, sort = TRUE)
+
+wordcloud2(Conteo_Letra_de_The_Tortured_Poets_Department_2024, shape = "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+
+Track #3- My boy only breaks its favourite toys.
+```{r Track #3}
+Pagina_de_Musica_3 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/My-Boy-Only-Breaks-His-Favorite-Toys")
+Letra <- html_nodes(Pagina_de_Musica_3, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_My_boy_only_breaks_its_favourite_toys_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_My_boy_only_breaks_its_favourite_toys_2024, col = "text")
+
+Letra_de_My_boy_only_breaks_its_favourite_toys_2024<-Letra_de_My_boy_only_breaks_its_favourite_toys_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_3)
+
+Conteo_Letra_de_My_boy_only_breaks_its_favourite_toys_2024<- Letra_de_My_boy_only_breaks_its_favourite_toys_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_My_boy_only_breaks_its_favourite_toys_2024)<- c("n", "word")
+
+Letra_de_My_boy_only_breaks_its_favourite_toys_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 3) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "My boy only breaks its favourite toys") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_My_boy_only_breaks_its_favourite_toys_2024, shape = "pentagon", color = "random-light", backgroundColor = "black")
+
+
+Letra_de_My_boy_only_breaks_its_favourite_toys_2024<- Letra_de_My_boy_only_breaks_its_favourite_toys_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_My_boy_only_breaks_its_favourite_toys_2024<-
+Letra_de_My_boy_only_breaks_its_favourite_toys_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_My_boy_only_breaks_its_favourite_toys_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "My boy only breaks its favourite toys", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_My_boy_only_breaks_its_favourite_toys_2024<- Letra_de_My_boy_only_breaks_its_favourite_toys_2024 %>% 
+count(word, sort = TRUE)
+
+wordcloud2(Conteo_Letra_de_My_boy_only_breaks_its_favourite_toys_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #4- Down bad.
+```{r Track #4}
+Pagina_de_Musica_4 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Down-Bad-1")
+Letra <- html_nodes(Pagina_de_Musica_4, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Down_bad_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Down_bad_2024, col = "text")
+
+Letra_de_Down_bad_2024<-Letra_de_Down_bad_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_4)
+
+Conteo_Letra_de_Down_bad_2024<- Letra_de_Down_bad_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Down_bad_2024)<- c("n", "word")
+
+Letra_de_Down_bad_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Down Bad") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Down_bad_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+
+Letra_de_Down_bad_2024<- Letra_de_Down_bad_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Down_bad_2024<-
+Letra_de_Down_bad_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Down_bad_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Down Bad", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Down_bad_2024<- Letra_de_Down_bad_2024 %>% 
+count(word, sort = TRUE)
+
+wordcloud2(Conteo_Letra_de_Down_bad_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #5 So Long, London.
+```{r Track #5}
+Pagina_de_Musica_5 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/So-Long-London")
+Letra <- html_nodes(Pagina_de_Musica_5, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_So_Long_London_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_So_Long_London_2024, col = "text")
+
+Letra_de_So_Long_London_2024<-Letra_de_So_Long_London_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_5)
+
+Conteo_Letra_de_So_Long_London_2024<- Letra_de_So_Long_London_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_So_Long_London_2024)<- c("n", "word")
+
+Letra_de_So_Long_London_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "So Long, London") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_So_Long_London_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_So_Long_London_2024<- Letra_de_So_Long_London_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_So_Long_London_2024<-
+Letra_de_So_Long_London_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_So_Long_London_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "So Long, London", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_So_Long_London_2024<- Letra_de_So_Long_London_2024%>% 
+count(word, sort = TRUE)
+
+wordcloud2(Conteo_Letra_de_So_Long_London_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+Track #6 But Daddy I Love Him.
+```{r Track #6}
+Pagina_de_Musica_6 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/But-Daddy-I-Love-Him-1")
+Letra <- html_nodes(Pagina_de_Musica_6, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_But_Daddy_I_Love_Him_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_But_Daddy_I_Love_Him_2024, col = "text")
+
+Letra_de_But_Daddy_I_Love_Him_2024<-Letra_de_But_Daddy_I_Love_Him_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_6)
+
+Conteo_Letra_de_But_Daddy_I_Love_Him_2024<- Letra_de_But_Daddy_I_Love_Him_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_But_Daddy_I_Love_Him_2024)<- c("n", "word")
+
+Letra_de_But_Daddy_I_Love_Him_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "But Daddy I Love Him") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_But_Daddy_I_Love_Him_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_But_Daddy_I_Love_Him_2024<- Letra_de_But_Daddy_I_Love_Him_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_But_Daddy_I_Love_Him_2024<-
+Letra_de_But_Daddy_I_Love_Him_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_But_Daddy_I_Love_Him_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "But Daddy I Love Him", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_But_Daddy_I_Love_Him_2024<- Letra_de_But_Daddy_I_Love_Him_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_But_Daddy_I_Love_Him_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #7 Fresh Out The Slammer.
+```{r Track #7}
+Pagina_de_Musica_7 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Fresh-Out-The-Slammer")
+Letra <- html_nodes(Pagina_de_Musica_7, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Fresh_Out_The_Slammer_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Fresh_Out_The_Slammer_2024, col = "text")
+
+Letra_de_Fresh_Out_The_Slammer_2024<-Letra_de_Fresh_Out_The_Slammer_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_7)
+
+Conteo_Letra_de_Fresh_Out_The_Slammer_2024<- Letra_de_Fresh_Out_The_Slammer_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Fresh_Out_The_Slammer_2024)<- c("n", "word")
+
+Letra_de_Fresh_Out_The_Slammer_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "But Daddy I Love Him") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Fresh_Out_The_Slammer_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Fresh_Out_The_Slammer_2024<- Letra_de_Fresh_Out_The_Slammer_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Fresh_Out_The_Slammer_2024<-
+Letra_de_Fresh_Out_The_Slammer_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Fresh_Out_The_Slammer_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "But Daddy I Love Him", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Fresh_Out_The_Slammer_2024<- Letra_de_Fresh_Out_The_Slammer_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Fresh_Out_The_Slammer_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #8 Florida!!! (feat. Florence + the Machine).
+```{r Track #8}
+Pagina_de_Musica_8 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Florida-Florence-the-Machine-1")
+Letra <- html_nodes(Pagina_de_Musica_8, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Florida_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Florida_2024, col = "text")
+
+Letra_de_Florida_2024<-Letra_de_Florida_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_8)
+
+Conteo_Letra_de_Florida_2024<- Letra_de_Florida_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Florida_2024)<- c("n", "word")
+
+Letra_de_Florida_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Florida!!! (feat. Florence + the Machine)") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Florida_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Florida_2024<- Letra_de_Florida_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Florida_2024<-
+Letra_de_Florida_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Florida_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Florida!!! (feat. Florence + the Machine)", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Florida_2024<- Letra_de_Florida_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Florida_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #9 Guilty as Sin.
+```{r Track #9}
+Pagina_de_Musica_9 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Guilty-as-Sin")
+Letra <- html_nodes(Pagina_de_Musica_9, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Guilty_as_Sin_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Guilty_as_Sin_2024, col = "text")
+
+Letra_de_Guilty_as_Sin_2024<-Letra_de_Guilty_as_Sin_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_9)
+
+Conteo_Letra_de_Guilty_as_Sin_2024<- Letra_de_Guilty_as_Sin_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Guilty_as_Sin_2024)<- c("n", "word")
+
+Letra_de_Guilty_as_Sin_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Guilty  as sin") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Guilty_as_Sin_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Guilty_as_Sin_2024<- Letra_de_Guilty_as_Sin_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Guilty_as_Sin_2024<-
+Letra_de_Guilty_as_Sin_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Guilty_as_Sin_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Guilty  as sin", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Guilty_as_Sin_2024<- Letra_de_Guilty_as_Sin_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Guilty_as_Sin_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #10 Whos afraid of little old me.
+```{r Track #10}
+Pagina_de_Musica_10 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Who-s-Afraid-of-Little-Old-Me")
+Letra <- html_nodes(Pagina_de_Musica_10, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Whos_Afraid_of_Little_old_me_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Whos_Afraid_of_Little_old_me_2024, col = "text")
+
+Letra_de_Whos_Afraid_of_Little_old_me_2024<-Letra_de_Whos_Afraid_of_Little_old_me_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_10)
+
+Conteo_Letra_de_Whos_Afraid_of_Little_old_me_2024<- Letra_de_Whos_Afraid_of_Little_old_me_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Whos_Afraid_of_Little_old_me_2024)<- c("n", "word")
+
+Letra_de_Whos_Afraid_of_Little_old_me_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Whos affraid of little old me") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Whos_Afraid_of_Little_old_me_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Whos_Afraid_of_Little_old_me_2024<- Letra_de_Whos_Afraid_of_Little_old_me_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Whos_Afraid_of_Little_old_me_2024<-
+Letra_de_Whos_Afraid_of_Little_old_me_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Whos_Afraid_of_Little_old_me_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Whos affraid of little old me", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Whos_Afraid_of_Little_old_me_2024<- Letra_de_Whos_Afraid_of_Little_old_me_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Whos_Afraid_of_Little_old_me_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #11 I can fix him (No Really I can).
+```{r Track #11}
+Pagina_de_Musica_11 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/I-Can-Fix-Him-No-Really-I-Can")
+Letra <- html_nodes(Pagina_de_Musica_11, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_I_can_fix_Him_NotReallyICan_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_I_can_fix_Him_NotReallyICan_2024, col = "text")
+
+Letra_de_I_can_fix_Him_NotReallyICan_2024<-Letra_de_I_can_fix_Him_NotReallyICan_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_11)
+
+Conteo_Letra_de_I_can_fix_Him_NotReallyICan_2024<- Letra_de_I_can_fix_Him_NotReallyICan_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_I_can_fix_Him_NotReallyICan_2024)<- c("n", "word")
+
+Letra_de_I_can_fix_Him_NotReallyICan_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "I can fix him (No, really I can)") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_I_can_fix_Him_NotReallyICan_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_I_can_fix_Him_NotReallyICan_2024<- Letra_de_I_can_fix_Him_NotReallyICan_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_I_can_fix_Him_NotReallyICan_2024<-
+Letra_de_I_can_fix_Him_NotReallyICan_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_I_can_fix_Him_NotReallyICan_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "I can fix him (No, really I can)", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_I_can_fix_Him_NotReallyICan_2024<- Letra_de_I_can_fix_Him_NotReallyICan_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_I_can_fix_Him_NotReallyICan_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #12 loml.
+```{r Track #12}
+Pagina_de_Musica_12 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/loml-1")
+Letra <- html_nodes(Pagina_de_Musica_12, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Lolm_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Lolm_2024, col = "text")
+
+Letra_de_Lolm_2024<-Letra_de_Lolm_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_11)
+
+Conteo_Letra_de_Lolm_2024<- Letra_de_Lolm_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Lolm_2024)<- c("n", "word")
+
+Letra_de_Lolm_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Loml") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Lolm_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Lolm_2024<- Letra_de_Lolm_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Lolm_2024<-
+Letra_de_Lolm_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Lolm_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Lolm", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Lolm_2024<- Letra_de_Lolm_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Lolm_2024, shape= "triangle-forward", 
+           color = "random-light", backgroundColor = "black")
+```
+
+Track #13 I Can do It With a Broken Heart.
+```{r Track #13}
+Pagina_de_Musica_13 <-read_html("http://musixmatch.com/lyrics/Taylor-Swift/I-Can-Do-It-With-a-Broken-Heart-1")
+Letra <- html_nodes(Pagina_de_Musica_13, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_I_Can_do_it_with_a_Broken_Heart <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_I_Can_do_it_with_a_Broken_Heart, col = "text")
+
+Letra_de_I_Can_do_it_with_a_Broken_Heart<-Letra_de_I_Can_do_it_with_a_Broken_Heart %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_11)
+
+Conteo_Letra_de_I_Can_do_it_with_a_Broken_Heart<- Letra_de_I_Can_do_it_with_a_Broken_Heart %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_I_Can_do_it_with_a_Broken_Heart)<- c("n", "word")
+
+Letra_de_I_Can_do_it_with_a_Broken_Heart %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "I Can do It With a Broken Heart") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_I_Can_do_it_with_a_Broken_Heart, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_I_Can_do_it_with_a_Broken_Heart<- Letra_de_I_Can_do_it_with_a_Broken_Heart %>% 
+anti_join(stop_words)
+
+Letra_de_I_Can_do_it_with_a_Broken_Heart<-
+Letra_de_I_Can_do_it_with_a_Broken_Heart %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_I_Can_do_it_with_a_Broken_Heart %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "I Can do It With a Broken Heart", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_I_Can_do_it_with_a_Broken_Heart<- Letra_de_I_Can_do_it_with_a_Broken_Heart %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_I_Can_do_it_with_a_Broken_Heart, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #14 The smallest man Who Ever lived.
+```{r Track #14}
+Pagina_de_Musica_14 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Smallest-Man-Who-Ever-Lived-1")
+Letra <- html_nodes(Pagina_de_Musica_14, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_smallest_man_Who_Ever_lived_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_smallest_man_Who_Ever_lived_2024, col = "text")
+
+Letra_de_The_smallest_man_Who_Ever_lived_2024<-Letra_de_The_smallest_man_Who_Ever_lived_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_11)
+
+Conteo_Letra_de_The_smallest_man_Who_Ever_lived_2024<- Letra_de_The_smallest_man_Who_Ever_lived_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_smallest_man_Who_Ever_lived_2024)<- c("n", "word")
+
+Letra_de_The_smallest_man_Who_Ever_lived_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The smallest man Who Ever lived") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_smallest_man_Who_Ever_lived_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_smallest_man_Who_Ever_lived_2024<- Letra_de_The_smallest_man_Who_Ever_lived_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_smallest_man_Who_Ever_lived_2024<-
+Letra_de_The_smallest_man_Who_Ever_lived_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_smallest_man_Who_Ever_lived_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The smallest man Who Ever lived", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_smallest_man_Who_Ever_lived_2024<- Letra_de_The_smallest_man_Who_Ever_lived_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_smallest_man_Who_Ever_lived_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #15 The Alchemy.
+```{r Track #15}
+Pagina_de_Musica_15 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Alchemy")
+Letra <- html_nodes(Pagina_de_Musica_15, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_Alchemy_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_Alchemy_2024, col = "text")
+
+Letra_de_The_Alchemy_2024<-Letra_de_The_Alchemy_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_15)
+
+Conteo_Letra_de_The_Alchemy_2024<- Letra_de_The_Alchemy_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_Alchemy_2024)<- c("n", "word")
+
+Letra_de_The_Alchemy_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Alchemy.") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_Alchemy_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_Alchemy_2024<- Letra_de_The_Alchemy_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_Alchemy_2024<-
+Letra_de_The_Alchemy_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_Alchemy_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Alchemy.", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_Alchemy_2024<- Letra_de_The_Alchemy_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_Alchemy_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #16 Clara Brown.
+```{r Track #16}
+Pagina_de_Musica_16 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Clara-Bow")
+Letra <- html_nodes(Pagina_de_Musica_16, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Clara_Brown_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Clara_Brown_2024, col = "text")
+
+Letra_de_Clara_Brown_2024<-Letra_de_Clara_Brown_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_16)
+
+Conteo_Letra_de_Clara_Brown_2024<- Letra_de_Clara_Brown_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Clara_Brown_2024)<- c("n", "word")
+
+Letra_de_Clara_Brown_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Clara Brown") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Clara_Brown_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Clara_Brown_2024<- Letra_de_Clara_Brown_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Clara_Brown_2024<-
+Letra_de_Clara_Brown_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Clara_Brown_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Clara Brown", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Clara_Brown_2024<- Letra_de_Clara_Brown_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Clara_Brown_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #17 The black Dog.
+```{r Track #17}
+Pagina_de_Musica_17 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Black-Dog")
+Letra <- html_nodes(Pagina_de_Musica_17, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_black_Dog_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_black_Dog_2024, col = "text")
+
+Letra_de_The_black_Dog_2024<-Letra_de_The_black_Dog_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_17)
+
+Conteo_Letra_de_The_black_Dog_2024<- Letra_de_The_black_Dog_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_black_Dog_2024)<- c("n", "word")
+
+Letra_de_The_black_Dog_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The black Dog") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_black_Dog_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_black_Dog_2024<- Letra_de_The_black_Dog_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_black_Dog_2024<-
+Letra_de_The_black_Dog_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_black_Dog_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The black Dog", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_black_Dog_2024<- Letra_de_The_black_Dog_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_black_Dog_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #18 imgonnagetyouback.
+```{r Track #18}
+Pagina_de_Musica_18 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/imgonnagetyouback")
+Letra <- html_nodes(Pagina_de_Musica_18, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_imgonnagetyouback_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_imgonnagetyouback_2024, col = "text")
+
+Letra_de_imgonnagetyouback_2024<-Letra_de_imgonnagetyouback_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_18)
+
+Conteo_Letra_de_imgonnagetyouback_2024<- Letra_de_imgonnagetyouback_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_imgonnagetyouback_2024)<- c("n", "word")
+
+Letra_de_imgonnagetyouback_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "imgonnagetyouback") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_imgonnagetyouback_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_imgonnagetyouback_2024<- Letra_de_imgonnagetyouback_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_imgonnagetyouback_2024<-
+Letra_de_imgonnagetyouback_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_imgonnagetyouback_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "imgonnagetyouback", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_imgonnagetyouback_2024<- Letra_de_imgonnagetyouback_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_imgonnagetyouback_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #19 imgonnagetyouback.
+```{r Track #19}
+Pagina_de_Musica_19 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/imgonnagetyouback")
+Letra <- html_nodes(Pagina_de_Musica_19, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_imgonnagetyouback_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_imgonnagetyouback_2024, col = "text")
+
+Letra_de_imgonnagetyouback_2024<-Letra_de_imgonnagetyouback_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_19)
+
+Conteo_Letra_de_imgonnagetyouback_2024<- Letra_de_imgonnagetyouback_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_imgonnagetyouback_2024)<- c("n", "word")
+
+Letra_de_imgonnagetyouback_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "imgonnagetyouback") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_imgonnagetyouback_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_imgonnagetyouback_2024<- Letra_de_imgonnagetyouback_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_imgonnagetyouback_2024<-
+Letra_de_imgonnagetyouback_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_imgonnagetyouback_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "imgonnagetyouback", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_imgonnagetyouback_2024<- Letra_de_imgonnagetyouback_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_imgonnagetyouback_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #20 The Albatross.
+```{r Track #20}
+Pagina_de_Musica_20 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Albatross")
+Letra <- html_nodes(Pagina_de_Musica_20, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_Albatross_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_Albatross_2024, col = "text")
+
+Letra_de_The_Albatross_2024<-Letra_de_The_Albatross_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_20)
+
+Conteo_Letra_de_The_Albatross_2024<- Letra_de_The_Albatross_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_Albatross_2024)<- c("n", "word")
+
+Letra_de_The_Albatross_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Albatross") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_Albatross_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_Albatross_2024<- Letra_de_The_Albatross_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_Albatross_2024<-
+Letra_de_The_Albatross_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_Albatross_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Albatross", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_Albatross_2024<- Letra_de_The_Albatross_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_Albatross_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #21 How Did It End.
+```{r Track #21}
+Pagina_de_Musica_21 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/How-Did-It-End")
+Letra <- html_nodes(Pagina_de_Musica_21, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_How_Did_it_End_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_How_Did_it_End_2024, col = "text")
+
+Letra_de_How_Did_it_End_2024<-Letra_de_How_Did_it_End_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_21)
+
+Conteo_Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_How_Did_it_End_2024)<- c("n", "word")
+
+Letra_de_How_Did_it_End_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_How_Did_it_End_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_How_Did_it_End_2024<-
+Letra_de_How_Did_it_End_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_How_Did_it_End_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_How_Did_it_End_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #22 So High Shcool.
+```{r Track #22}
+Pagina_de_Musica_22 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/So-High-School")
+Letra <- html_nodes(Pagina_de_Musica_22, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_So_High_School_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_So_High_School_2024, col = "text")
+
+Letra_de_So_High_School_2024<-Letra_de_So_High_School_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_22)
+
+Conteo_Letra_de_So_High_School_2024<- Letra_de_So_High_School_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_So_High_School_2024)<- c("n", "word")
+
+Letra_de_So_High_School_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_So_High_School_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_So_High_School_2024<- Letra_de_So_High_School_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_So_High_School_2024<-
+Letra_de_So_High_School_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_So_High_School_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_So_High_School_2024<- Letra_de_So_High_School_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_So_High_School_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #23 I Hate it Her.
+```{r Track #23}
+Pagina_de_Musica_23 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/I-Hate-It-Here")
+Letra <- html_nodes(Pagina_de_Musica_23, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_How_Did_it_End_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_How_Did_it_End_2024, col = "text")
+
+Letra_de_How_Did_it_End_2024<-Letra_de_How_Did_it_End_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_22)
+
+Conteo_Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_How_Did_it_End_2024)<- c("n", "word")
+
+Letra_de_How_Did_it_End_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_How_Did_it_End_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_How_Did_it_End_2024<-
+Letra_de_How_Did_it_End_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_How_Did_it_End_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_How_Did_it_End_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #24 Thank you alMee.
+```{r Track #24}
+Pagina_de_Musica_24 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/thanK-you-aIMee")
+Letra <- html_nodes(Pagina_de_Musica_24, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_How_Did_it_End_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_How_Did_it_End_2024, col = "text")
+
+Letra_de_How_Did_it_End_2024<-Letra_de_How_Did_it_End_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_22)
+
+Conteo_Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_How_Did_it_End_2024)<- c("n", "word")
+
+Letra_de_How_Did_it_End_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_How_Did_it_End_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_How_Did_it_End_2024<-
+Letra_de_How_Did_it_End_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_How_Did_it_End_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "How Did It End", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_How_Did_it_End_2024<- Letra_de_How_Did_it_End_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_How_Did_it_End_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #25 I look into peoples Windows.
+```{r Track #25}
+Pagina_de_Musica_25 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/I-Look-in-People-s-Windows")
+Letra <- html_nodes(Pagina_de_Musica_25, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_I_look_into_peoples_Windows_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_I_look_into_peoples_Windows_2024, col = "text")
+
+Letra_de_I_look_into_peoples_Windows_2024<-Letra_de_I_look_into_peoples_Windows_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_25)
+
+Conteo_Letra_de_I_look_into_peoples_Windows_2024<- Letra_de_I_look_into_peoples_Windows_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_I_look_into_peoples_Windows_2024)<- c("n", "word")
+
+Letra_de_I_look_into_peoples_Windows_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "I look into peoples Windows") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_I_look_into_peoples_Windows_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_I_look_into_peoples_Windows_2024<- Letra_de_I_look_into_peoples_Windows_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_I_look_into_peoples_Windows_2024<-
+Letra_de_I_look_into_peoples_Windows_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_I_look_into_peoples_Windows_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "I look into peoples Windows", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_I_look_into_peoples_Windows_2024<- Letra_de_I_look_into_peoples_Windows_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_I_look_into_peoples_Windows_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #26 The Prophecy.
+```{r Track #26}
+Pagina_de_Musica_26 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Prophecy")
+Letra <- html_nodes(Pagina_de_Musica_26, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_Prophecy_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_Prophecy_2024, col = "text")
+
+Letra_de_The_Prophecy_2024<-Letra_de_The_Prophecy_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_26)
+
+Conteo_Letra_de_The_Prophecy_2024<- Letra_de_The_Prophecy_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_Prophecy_2024)<- c("n", "word")
+
+Letra_de_The_Prophecy_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Prophecy") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_Prophecy_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_Prophecy_2024<- Letra_de_The_Prophecy_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_Prophecy_2024<-
+Letra_de_The_Prophecy_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_Prophecy_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Prophecy", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_Prophecy_2024<- Letra_de_The_Prophecy_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_Prophecy_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #27 The Cassandra.
+```{r Track #27}
+Pagina_de_Musica_27 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Cassandra")
+Letra <- html_nodes(Pagina_de_Musica_27, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_Cassandra_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_Cassandra_2024, col = "text")
+
+Letra_de_The_Cassandra_2024<-Letra_de_The_Cassandra_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_26)
+
+Conteo_Letra_de_The_Cassandra_2024<- Letra_de_The_Cassandra_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_Cassandra_2024)<- c("n", "word")
+
+Letra_de_The_Cassandra_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Cassandra") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_Cassandra_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_Cassandra_2024<- Letra_de_The_Cassandra_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_Cassandra_2024<-
+Letra_de_The_Cassandra_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_Cassandra_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Cassandra", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_Cassandra_2024<- Letra_de_The_Cassandra_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_Cassandra_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #28 Peter.
+```{r Track #28}
+Pagina_de_Musica_28 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Peter")
+Letra <- html_nodes(Pagina_de_Musica_28, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Peter_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Peter_2024, col = "text")
+
+Letra_de_Peter_2024<-Letra_de_Peter_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_28)
+
+Conteo_Letra_de_Peter_2024<- Letra_de_Peter_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Peter_2024)<- c("n", "word")
+
+Letra_de_Peter_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Peter") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Peter_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Peter_2024<- Letra_de_Peter_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Peter_2024<-
+Letra_de_Peter_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Peter_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Peter", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Peter_2024<- Letra_de_Peter_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Peter_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+  
+Track #29 The Bolter.
+```{r Track #29}
+Pagina_de_Musica_29 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Bolter")
+Letra <- html_nodes(Pagina_de_Musica_29, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_Bolter_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_Bolter_2024, col = "text")
+
+Letra_de_The_Bolter_2024<-Letra_de_The_Bolter_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_29)
+
+Conteo_Letra_de_The_Bolter_2024<- Letra_de_The_Bolter_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_Bolter_2024)<- c("n", "word")
+
+Letra_de_The_Bolter_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Bolter") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_Bolter_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_Bolter_2024<- Letra_de_The_Bolter_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_Bolter_2024<-
+Letra_de_The_Bolter_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_Bolter_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Bolter", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_Bolter_2024<- Letra_de_The_Bolter_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_Bolter_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #30 Robin.
+```{r Track #30}
+Pagina_de_Musica_30 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/Robin")
+Letra <- html_nodes(Pagina_de_Musica_30, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_Robin_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_Robin_2024, col = "text")
+
+Letra_de_Robin_2024<-Letra_de_Robin_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_29)
+
+Conteo_Letra_de_Robin_2024<- Letra_de_Robin_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_Robin_2024)<- c("n", "word")
+
+Letra_de_Robin_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Robin") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_Robin_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_Robin_2024<- Letra_de_Robin_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_Robin_2024<-
+Letra_de_Robin_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_Robin_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 2) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "Robin", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_Robin_2024<- Letra_de_Robin_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_Robin_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
+
+Track #31 The Manuscript.
+```{r Track #31}
+Pagina_de_Musica_30 <-read_html("https://www.musixmatch.com/lyrics/Taylor-Swift/The-Manuscript")
+Letra <- html_nodes(Pagina_de_Musica_30, ".r-1v1z2uz") %>% html_text2()
+
+dumy_df <- data.frame(text = Letra, stringsAsFactors = FALSE)
+
+Letra_de_The_Manuscript_2024 <- dumy_df
+
+remove(dumy_df)
+
+remove(Letra)
+
+unnest(Letra_de_The_Manuscript_2024, col = "text")
+
+Letra_de_The_Manuscript_2024<-Letra_de_The_Manuscript_2024 %>% unnest_tokens(word, text)
+
+remove(Pagina_de_Musica_29)
+
+Conteo_Letra_de_The_Manuscript_2024<- Letra_de_The_Manuscript_2024 %>% 
+      count(word, sort = TRUE)
+
+colnames(Conteo_Letra_de_The_Manuscript_2024)<- c("n", "word")
+
+Letra_de_The_Manuscript_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 5) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Manuscript") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+wordcloud2(Conteo_Letra_de_The_Manuscript_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+
+Letra_de_The_Manuscript_2024<- Letra_de_The_Manuscript_2024 %>% 
+anti_join(stop_words)
+
+Letra_de_The_Manuscript_2024<-
+Letra_de_The_Manuscript_2024 %>% 
+anti_join(Stop_Words_2_df)
+
+Letra_de_The_Manuscript_2024 %>% 
+  count(word, sort = TRUE) %>%
+  filter(n > 1) %>%
+  mutate(word = reorder(word, n, fill = n)) %>%
+  ggplot(aes(n, word, fill = n)) + 
+  geom_col() +
+  geom_text(aes(label= n), vjust= 0.5,  hjust= 2, size= 4, color = "White") +
+  labs(title = "The Manuscript", subtitle = "Limpia") +
+  xlab ("Repeticiones")+ ylab("Palabras")
+
+Conteo_Letra_de_The_Manuscript_2024<- Letra_de_The_Manuscript_2024 %>% 
+      count(word, sort = TRUE)
+wordcloud2(Conteo_Letra_de_The_Manuscript_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
+```
