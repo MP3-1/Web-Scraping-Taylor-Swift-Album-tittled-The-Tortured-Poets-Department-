@@ -8,7 +8,6 @@ date: "2025-03-19"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 library(rvest)
 library(tidyr)
 library(tidytext)
@@ -17,6 +16,13 @@ library(ggplot2)
 library(plotly)
 library(wordcloud2)
 library(wordcloud)
+library(textdata)
+library(syuzhet)
+library(RColorBrewer)
+library(tm)
+library(sentimentr)
+library(scales)
+library(RColorBrewer)
 ```
 
 En la indsutria musical, uno de los mayores referentes para consultar los rankigs de los LongPlays es BilBoard. Está empresa genera diversas listas que clasifican música bajo diferentes criterios (audiencia) y carácterísiticas (género musical y fechas). En especial, el Bilboard 200 es una lista especial, pues muestra los mejores albumes del siglo 21 según Bilboard. Esta lista ha tenido un cambio significativo, pues dentro del top 10 de esta lista encontramos 6 albumes por autoras femeninas. Si bien esto habla sobre la equidad de género presente en los últimos 20 años, resulta interesante entender si estas artistas comparten algún rasgo en sus canciones y explique el éxito compartido en esta prestigiosa lista.
@@ -34,7 +40,7 @@ Stop
 ```{r Stop_words}
 Stop_Words_2<- c("taylor", "swift", "post", "malone","lyrics", 
                  "Lyrics", "chorus", "Chorus", "verse", "ll", 
-                 "ve", "musixmatch", "tag")
+                 "ve", "musixmatch", "tag", 25, 50, 75)
 Stop_Words_2_df <- tibble(word = Stop_Words_2)
 
 options(timeout = 1000)
@@ -1858,3 +1864,569 @@ Conteo_Letra_de_The_Manuscript_2024<- Letra_de_The_Manuscript_2024 %>%
       count(word, sort = TRUE)
 wordcloud2(Conteo_Letra_de_The_Manuscript_2024, shape= "triangle-forward", color = "random-light", backgroundColor = "black")
 ```
+
+```{r Compilación de letras}
+lyrics_direct_df<- bind_rows(Letra_de_But_Daddy_I_Love_Him_2024,
+                      Letra_de_Clara_Brown_2024,
+                      Letra_de_Down_bad_2024,
+                      Letra_de_Florida_2024,
+                      Letra_de_Fortnight_2024,
+                      Letra_de_Fresh_Out_The_Slammer_2024,
+                      Letra_de_Guilty_as_Sin_2024,
+                      Letra_de_How_Did_it_End_2024,
+                      Letra_de_I_Can_do_it_with_a_Broken_Heart,
+                      Letra_de_I_can_fix_Him_NotReallyICan_2024,
+                      Letra_de_I_look_into_peoples_Windows_2024,
+                      Letra_de_imgonnagetyouback_2024,
+                      Letra_de_Lolm_2024,
+                      Letra_de_My_boy_only_breaks_its_favourite_toys_2024,
+                      Letra_de_Peter_2024,
+                      Letra_de_Robin_2024,
+                      Letra_de_So_High_School_2024,
+                      Letra_de_So_Long_London_2024,
+                      Letra_de_The_Albatross_2024,
+                      Letra_de_The_Alchemy_2024,
+                      Letra_de_The_black_Dog_2024,
+                      Letra_de_The_Bolter_2024,
+                      Letra_de_The_Cassandra_2024,
+                      Letra_de_The_Manuscript_2024,
+                      Letra_de_The_Prophecy_2024,
+                      Letra_de_The_smallest_man_Who_Ever_lived_2024,
+                      Letra_de_The_Tortured_Poets_Department_2024,
+                      Letra_de_Whos_Afraid_of_Little_old_me_2024
+)
+lyrics_df<- lyrics_direct_df %>% 
+      count(word, sort = TRUE)
+View(lyrics_df)
+```
+
+
+```{r Análisis de Sentimiento, 1}
+lyrics_df<- bind_rows(Conteo_Letra_de_But_Daddy_I_Love_Him_2024,
+                   Conteo_Letra_de_Clara_Brown_2024,
+                   Conteo_Letra_de_Down_bad_2024,
+                   Conteo_Letra_de_Florida_2024,
+                   Conteo_Letra_de_Fortnight_2024,
+                   Conteo_Letra_de_Fresh_Out_The_Slammer_2024,
+                   Conteo_Letra_de_Guilty_as_Sin_2024,
+                   Conteo_Letra_de_How_Did_it_End_2024,
+                   Conteo_Letra_de_I_Can_do_it_with_a_Broken_Heart,
+                   Conteo_Letra_de_I_can_fix_Him_NotReallyICan_2024,
+                   Conteo_Letra_de_I_look_into_peoples_Windows_2024,
+                   Conteo_Letra_de_imgonnagetyouback_2024,
+                   Conteo_Letra_de_Lolm_2024,
+                   Conteo_Letra_de_My_boy_only_breaks_its_favourite_toys_2024,
+                   Conteo_Letra_de_Peter_2024,
+                   Conteo_Letra_de_Robin_2024,
+                   Conteo_Letra_de_So_High_School_2024,
+                   Conteo_Letra_de_The_Albatross_2024,
+                   Conteo_Letra_de_The_Alchemy_2024,
+                   Conteo_Letra_de_The_black_Dog_2024,
+                   Conteo_Letra_de_The_Bolter_2024,
+                   Conteo_Letra_de_The_Cassandra_2024,
+                   Conteo_Letra_de_The_Manuscript_2024,
+                   Conteo_Letra_de_The_Prophecy_2024,
+                   Conteo_Letra_de_The_smallest_man_Who_Ever_lived_2024,
+                   Conteo_Letra_de_Whos_Afraid_of_Little_old_me_2024)
+View(lyrics_df)
+
+```
+
+Análisis de sentimiento, 1.
+
+Para el análisis de sentimiento, tomamos los conteos de palabras que se usaron previamente para las gráficas ya diseñadas, pero se ignorará la frecuencia acumulada de las palabras. Esto quiere decir que si la palabra positivas "love" y "happy" son las más frecuentas pero hay mayor variedad de palabras negativas como "angry", "mad" o "sad", se evaluará el sentimiento de la canción como más negativa que positiva. 
+
+Si bien también puede hacer sentido que la proporción entre sentimientos positivos o negativos se base en la frecuencia de estas palabras, no es relevante para este proyecto por la naturaleza de las canciones. Las canciones, en especial las de este album, suelen repetir su coro más de una vez en la canción, por lo que tomar la frecuencia de las palabras positivas o negativas como un argumento para determinar la proporción de sentimientos en las canciones no es apropiado. 
+
+De este modo, en este análisis se toma una postura cualitativa a la hora de hacer análisis de sentimiento en las canciones, donde la frecuencia de palabras negativas no se correlaciona directamente con la proporcionalidad de la canción entre sentimientos positivos o negativos.
+
+A nivel general, y siendo este un análisis cuantitativo, la frecuencia de las palabras positivas o negativas se hará entre canciones: si en tres canciones del album aparece una mimsa palabra, se dirá que la frecuencia, proporcionalidad o participación es mayor o menor a otras.
+
+Ahora separamos las letras del album entre positivas y negativas, para visualizar de forma más clara la distinción cualitativa en este análisis de sentimiento.
+
+```{r}
+bing_lexicon <- get_sentiments("bing")
+nrc_lexicon <- get_sentiments("nrc")
+afinn_lexicon <- get_sentiments("afinn")
+
+bing_sentiment <- lyrics_df %>%
+  inner_join(bing_lexicon, by = "word") %>%
+  count(sentiment, wt = n) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment_score = positive - negative,
+         sentiment_ratio = positive / (positive + negative))
+
+bing_word_counts_complete <- lyrics_df %>%
+  inner_join(bing_lexicon, by = "word") %>%
+  group_by(word, sentiment) %>%
+  summarise(n = n(), .groups = 'drop')
+
+positive_words <- bing_word_counts_complete %>%
+  filter(sentiment == "positive")
+
+negative_words <- bing_word_counts_complete %>%
+  filter(sentiment == "negative")
+
+if(nrow(positive_words) > 0) {
+  set.seed(42) # Para reproducibilidad
+  wordcloud(words = positive_words$word, freq = positive_words$n,
+            max.words = 100, random.order = FALSE,
+            colors = brewer.pal(8, "Greens"))
+  title("Palabras Positivas (Bing Lexicon)")
+} else {
+  print("No se encontraron palabras positivas en el dataset según el léxico Bing.")
+}
+
+```
+
+```{r}
+# Crear la nube de palabras para sentimiento negativo
+if(nrow(negative_words) > 0) {
+  set.seed(42) # Para reproducibilidad
+  wordcloud(words = negative_words$word, freq = negative_words$n,
+            max.words = 100, random.order = FALSE,
+            colors = brewer.pal(8, "Reds"))
+  title("Palabras Negativas (Bing Lexicon)")
+}
+```
+
+
+```{r}
+positive_words_filtered <- positive_words %>%
+  filter(n >= 2)
+
+if(nrow(positive_words_filtered) > 0) {
+  ggplot(positive_words_filtered, aes(x = reorder(word, n), y = n)) +
+    geom_col(fill = "forestgreen") +
+    labs(title = "Frecuencia de Palabras Positivas (>= 2 veces)",
+         x = NULL,
+         y = "Frecuencia") +
+    coord_flip() +
+    theme_minimal()
+} else {
+  print("No hay palabras positivas que aparezcan 2 o más veces para crear el gráfico.")
+}
+```
+
+```{r}
+neegative_words_filterd <- negative_words %>%
+  filter(n >= 2)
+
+if(nrow(neegative_words_filterd) > 0) {
+  ggplot(neegative_words_filterd, aes(x = reorder(word, n), y = n)) +
+    geom_col(fill = "red") +
+    labs(title = "Frecuencia de Palabras Negativas (>= 2 veces)",
+         x = NULL,
+         y = "Frecuencia") +
+    coord_flip() +
+    theme_minimal()
+}
+```
+
+Hacemos un "zoom" en las palabras negativas, pues la mayoría tienen una frecuencia de 2. Lo anterior nos sugiere que, a nivel caulitativo, las emociones negativas son las más diversas y prevalentes
+
+```{r}
+neegative_words_filterd <- negative_words %>%
+  filter(n >= 3)
+
+if(nrow(neegative_words_filterd) > 0) {
+  ggplot(neegative_words_filterd, aes(x = reorder(word, n), y = n)) +
+    geom_col(fill = "red") +
+    labs(title = "Frecuencia de Palabras Negativas (>= 3 veces)",
+         x = NULL,
+         y = "Frecuencia") +
+    coord_flip() +
+    theme_minimal()
+}
+```
+
+Ahora vemos su la palabras negativas y positivas comparadas entre ellas, en específico aquellas con frecuencia igual o mayor a 5.
+
+```{r}
+
+bing_word_counts <- lyrics_df %>%
+  inner_join(bing_lexicon, by = "word") %>%
+  group_by(word, sentiment) %>%
+  summarise(n = n(), .groups = 'drop') %>%
+  filter(n >= 5) # Filter words with count >= 5
+
+if(nrow(bing_word_counts) > 0) {
+  ggplot(bing_word_counts, aes(x = reorder(word, n), y = n, fill = sentiment)) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~sentiment, scales = "free_y") +
+    labs(x = NULL, y = "Contribution to Sentiment",
+         title = "Sentiment Analysis using Bing Lexicon (Counts >= 5)") +
+    coord_flip() +
+    theme_minimal()
+  
+  # If no matches were found after filtering
+} else {
+  print("No words with a count of 5 or more in your dataset matched the Bing sentiment lexicon")
+  # Create a placeholder for words not found in lexicon
+  bing_sentiment <- data.frame(negative = 0, positive = 0,
+                               sentiment_score = 0, sentiment_ratio = 0)
+}
+
+```
+Como podemos ver, las emociones negativas que tienen una frecuencia mayor o igual a 5 son "die", "bad", "lost", "fuck" y "dead" (muy similar a die), minetra que las emociones positivas que igualan o superan la frecuencia de 5 es "love"
+
+Revisamos la proporcionalidad de sentimientos negativos y positivos en la misma.
+
+```{r}
+bing_sentiment_counts <- lyrics_df %>%
+  inner_join(bing_lexicon, by = "word") %>%
+  count(sentiment) %>%
+  mutate(percentage = n / sum(n))
+
+if(nrow(bing_sentiment_counts) > 0) {
+  ggplot(bing_sentiment_counts, aes(x = "", y = percentage, fill = sentiment)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar("y", start = 0) +
+    geom_text(aes(label = paste0(round(percentage*100), "%")),
+              position = position_stack(vjust = 0.5),
+              size = 4) +
+    labs(title = "Proporción de Sentimientos (Bing Lexicon)",
+         fill = "Sentimiento") +
+    theme_void() +
+    theme(legend.position = "bottom")
+  
+} else {
+  print("No words in your dataset matched the Bing sentiment lexicon")
+  # Create a placeholder if no matches are found
+  bing_sentiment <- data.frame(sentiment = character(0), n = integer(0), percentage = numeric(0))
+}
+```
+
+Ahora revisamos esta proporcionalidad con el resto de sentimientos que identifica este lexicon
+```{r}
+nrc_lexicon <- get_sentiments("nrc") %>%
+  filter(sentiment %in% c("anger", "disgust", "fear", "joy", "sadness", "surprise", "positive", "negative"))
+
+# Join con tus conteos de palabras y el léxico NRC
+nrc_emotion_counts <- lyrics_df %>%
+  inner_join(nrc_lexicon, by = "word") %>%
+  count(sentiment) %>%
+  mutate(percentage = n / sum(n))
+
+if(nrow(nrc_emotion_counts) > 0) {
+  # Gráfico de pastel de emociones por palabra (usando léxico NRC)
+  pie_emotion <- ggplot(nrc_emotion_counts, aes(x = "", y = percentage, fill = sentiment)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar("y", start = 0) +
+    geom_text(aes(label = paste0(round(percentage*100), "%")),
+              position = position_stack(vjust = 0.5),
+              size = 3) +
+    labs(title = "Proporción de Emociones (NRC Lexicon)",
+         fill = "Emoción") +
+    theme_void() +
+    theme(legend.position = "bottom") +
+    guides(fill = guide_legend(ncol = 2)) # Para organizar mejor la leyenda si hay muchas emociones
+  print(pie_emotion)
+}
+```
+Gracias a BING, sabemos que 
+1- 
+La cantidad de palabras que se repiten a lo largo de canciones es poca, lo que puede indicar un uso discriminado de vocabulario entre canciones
+
+2-
+En este lexicon, vemos que la diversidad de palabras negativas es mayor a las palabras positivas, en especial cuando se filtra la fecuencia de palabras entre canciones como igual o mayor a 5
+
+3-
+Siguiendo bajo al idea de este flitro y dentro de las palabras negativas vemos que se repite una vez la forma de la palabra muerte, mientras que en las palabras positivas solo vemos amor. 
+
+4-
+Revisando de forma más amplia la sentimentalidad del album, y dejando de la lado las categorías de positivo y negativo sobre las que ya se hicieron análisis, vemos que el resto de sentimientos se pueden agrupar entre positivas y negativas. Los sentimientos negativos en esta categoría vienen a ser Tristeza, Miedo, Asco y Furia, mientras que los sentimientos positivos son Alegría.
+Lo anterior podría apuntar que en este album se tiene un desarrollo más diverso para hablar de sentimientos negativos, mientras que para hablar sobre sentimiento positivos solo se tiene la alegría
+
+A nivel general, esto nos puede indicar que el éxito de este album se podría explicar por su énfasis en emociones negativas, una diversidad amplia para hablar de emociones negativas, una dedicación menor de las letras de las canciones a emociones positivas y limitar estas emociones positvas a la alegría.
+
+A continuación, vamos a repetir el análisis de sentimiento con otro lexicon: NRC 
+
+```{r}
+nrc_sentiment <- lyrics_df %>%
+  inner_join(nrc_lexicon, by = "word") %>%
+  count(sentiment, wt = count) %>%
+  arrange(desc(n))
+
+
+if(nrow(nrc_sentiment) > 0) {
+  ggplot(nrc_sentiment, aes(x = reorder(sentiment, n), y = n, fill = sentiment)) +
+    geom_col(show.legend = FALSE) +
+    labs(x = NULL, y = "Count",
+         title = "Emotion Analysis using NRC Lexicon") +
+    coord_flip() +
+    theme_minimal() +
+    scale_fill_brewer(palette = "Dark2")
+
+
+```
+
+
+```{r}
+
+
+
+  
+  # Create a word cloud of emotions
+  nrc_words <- lyrics_df %>%
+    inner_join(nrc_lexicon, by = "word")
+  
+  # Emotion word counts
+  emotion_counts <- nrc_words %>%
+    filter(!sentiment %in% c("positive", "negative")) %>%
+    count(sentiment, word, wt = count) %>%
+    arrange(desc(n))
+  
+  # Display top words for each emotion
+  top_emotion_words <- emotion_counts %>%
+    group_by(sentiment) %>%
+    slice_max(order_by = n, n = 3) %>%
+    ungroup()
+  
+  print("Top words for each emotion:")
+  print(top_emotion_words)
+} else {
+  print("No words in your dataset matched the NRC emotion lexicon")
+}
+
+# 3. AFINN SENTIMENT SCORING
+# --------------------------
+# AFINN lexicon assigns scores from -5 (very negative) to 5 (very positive)
+
+# Get the sentiment lexicon
+
+
+# Join with your word counts
+afinn_sentiment <- lyrics_df %>%
+  inner_join(afinn_lexicon, by = "word") %>%
+  mutate(weighted_value = value * count) %>%
+  summarise(
+    total_words = sum(count),
+    sum_sentiment = sum(weighted_value),
+    mean_sentiment = mean(value),
+    weighted_mean = sum(weighted_value) / sum(count)
+  )
+
+# Word-level AFINN scores
+afinn_words <- lyrics_df %>%
+  inner_join(afinn_lexicon, by = "word") %>%
+  arrange(desc(abs(value)))
+
+if(nrow(afinn_words) > 0) {
+  ggplot(afinn_words, aes(x = reorder(word, value), y = value, fill = value > 0)) +
+    geom_col(show.legend = FALSE) +
+    scale_fill_manual(values = c("TRUE" = "darkgreen", "FALSE" = "darkred")) +
+    labs(x = NULL, y = "AFINN Score",
+         title = "AFINN Sentiment Scores") +
+    coord_flip() +
+    theme_minimal()
+  
+  print("AFINN Sentiment Summary:")
+  print(afinn_sentiment)
+} else {
+  print("No words in your dataset matched the AFINN sentiment lexicon")
+  # Create a placeholder
+  afinn_sentiment <- data.frame(total_words = 0, sum_sentiment = 0, 
+                              mean_sentiment = 0, weighted_mean = 0)
+}
+
+# 4. SYUZHET SENTIMENT ANALYSIS
+# ---------------------------
+# Syuzhet package provides multiple sentiment analysis methods
+
+# Convert your word data to a format syuzhet can use
+# For this we'll need to create a simulated text where each word appears its count number of times
+simulated_text <- sapply(1:nrow(lyrics_df), function(i) {
+  rep(lyrics_df$word[i], lyrics_df$count[i])
+}) %>% unlist() %>% paste(collapse = " ")
+
+# Extract sentiment using multiple methods
+syuzhet_sentiments <- get_sentiment(simulated_text, method = "syuzhet")
+bing_sentiments <- get_sentiment(simulated_text, method = "bing")
+afinn_sentiments <- get_sentiment(simulated_text, method = "afinn")
+nrc_sentiments <- get_sentiment(simulated_text, method = "nrc")
+
+# Get emotion classification
+nrc_emotions <- get_nrc_sentiment(simulated_text)
+
+# Create a summary dataframe
+syuzhet_summary <- data.frame(
+  method = c("syuzhet", "bing", "afinn", "nrc"),
+  sentiment_score = c(
+    sum(syuzhet_sentiments),
+    sum(bing_sentiments),
+    sum(afinn_sentiments),
+    sum(nrc_sentiments)
+  ),
+  average_sentiment = c(
+    mean(syuzhet_sentiments),
+    mean(bing_sentiments),
+    mean(afinn_sentiments),
+    mean(nrc_sentiments)
+  )
+)
+
+# Visualize the NRC emotions from syuzhet
+nrc_emotions_sum <- colSums(nrc_emotions)
+emotions_df <- data.frame(
+  emotion = names(nrc_emotions_sum),
+  count = nrc_emotions_sum
+)
+
+ggplot(emotions_df, aes(x = reorder(emotion, count), y = count, fill = emotion)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "Count",
+       title = "Emotion Analysis using Syuzhet's NRC Implementation") +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Paired")
+
+# 5. SENTIMENTR ANALYSIS (CONTEXT-AWARE)
+# --------------------------------------
+# SentimentR considers valence shifters (negators, amplifiers, deamplifiers)
+
+# Since sentimentr works with sentences, we need to create a mock sentence
+# from our word frequency data
+mock_sentences <- data.frame(
+  text = simulated_text,
+  id = 1
+)
+
+# Analyze sentiment with consideration of valence shifters
+sentimentr_results <- sentiment(mock_sentences$text)
+
+# Summary statistics
+sentimentr_summary <- sentimentr_results %>%
+  summarise(
+    mean_sentiment = mean(sentiment),
+    sd_sentiment = sd(sentiment),
+    median_sentiment = median(sentiment)
+  )
+
+print("SentimentR Analysis Results:")
+print(sentimentr_summary)
+
+# 6. COMPARATIVE ANALYSIS OF ALL METHODS
+# --------------------------------------
+# Create a comparison of all sentiment methods
+
+# Combine all results for comparison
+method_comparison <- data.frame(
+  Method = c("Bing (Pos-Neg)", "AFINN Weighted", "Syuzhet", "SentimentR"),
+  Score = c(
+    ifelse(exists("bing_sentiment") && is.data.frame(bing_sentiment) && ncol(bing_sentiment) >= 3, 
+           bing_sentiment$sentiment_score[1], 0),
+    ifelse(exists("afinn_sentiment") && is.data.frame(afinn_sentiment) && "weighted_mean" %in% names(afinn_sentiment), 
+           afinn_sentiment$weighted_mean[1], 0),
+    syuzhet_summary$average_sentiment[syuzhet_summary$method == "syuzhet"],
+    sentimentr_summary$mean_sentiment[1]
+  )
+)
+
+# Visualize the comparison
+ggplot(method_comparison, aes(x = reorder(Method, Score), y = Score, fill = Method)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "Sentiment Score",
+       title = "Comparison of Sentiment Analysis Methods") +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set1")
+
+# 7. ADDITIONAL ANALYSIS: TERM FREQUENCY - INVERSE DOCUMENT FREQUENCY (TF-IDF)
+# --------------------------------------------------------------------------
+# If you have multiple songs/documents, TF-IDF could be useful
+
+# For demonstration, let's create a mock dataset with multiple songs
+# In reality, you would load your actual songs data
+
+# This is just a placeholder example - replace with your actual data structure
+# mock_songs <- data.frame(
+#   song_id = c(1, 1, 1, 2, 2, 2, 3, 3, 3),
+#   word = c("love", "heart", "break", "dark", "night", "rain", "sun", "light", "shine"),
+#   count = c(10, 8, 5, 7, 6, 5, 9, 8, 7)
+# )
+# 
+# # Calculate tf-idf
+# song_words_tfidf <- mock_songs %>%
+#   bind_tf_idf(word, song_id, count)
+# 
+# # Find words with high tf-idf by song
+# top_tfidf <- song_words_tfidf %>%
+#   group_by(song_id) %>%
+#   slice_max(tf_idf, n = 3) %>%
+#   ungroup()
+# 
+# print("Top TF-IDF Words by Song:")
+# print(top_tfidf)
+
+# 8. SENTIMENT OVER SONG PROGRESSION (IF YOU HAVE POSITIONAL DATA)
+# --------------------------------------------------------------
+# If you have data on where words appear in the song, you can track sentiment changes
+
+# Example (commented out as you would need positional data)
+# mock_lyrics_position <- data.frame(
+#   position = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+#   text = c("happy days", "feeling good", "clouds appear", "rain falls", "tears flow", 
+#            "heart breaks", "memories fade", "sunrise comes", "new beginnings", "hope returns")
+# )
+# 
+# # Calculate sentiment by position
+# position_sentiment <- mock_lyrics_position$text %>%
+#   get_sentiment(method = "syuzhet") %>%
+#   data.frame(position = mock_lyrics_position$position, sentiment = .)
+# 
+# # Plot sentiment over song progression
+# ggplot(position_sentiment, aes(x = position, y = sentiment)) +
+#   geom_line() +
+#   geom_point() +
+#   geom_smooth(se = FALSE, color = "blue") +
+#   labs(title = "Sentiment Progression Throughout Song",
+#        x = "Position in Song", y = "Sentiment Score") +
+#   theme_minimal()
+
+# SUMMARY AND VISUALIZATION OF RESULTS
+# -----------------------------------
+# Create a comprehensive summary
+
+cat("\n===== SENTIMENT ANALYSIS SUMMARY =====\n")
+
+cat("\n1. BING LEXICON RESULTS:\n")
+if(exists("bing_sentiment") && is.data.frame(bing_sentiment) && nrow(bing_sentiment) > 0) {
+  cat("Positive words count:", bing_sentiment$positive[1], "\n")
+  cat("Negative words count:", bing_sentiment$negative[1], "\n")
+  cat("Overall sentiment score:", bing_sentiment$sentiment_score[1], "\n")
+  cat("Sentiment ratio (positive/total):", round(bing_sentiment$sentiment_ratio[1], 2), "\n")
+} else {
+  cat("No matches found in the Bing lexicon\n")
+}
+
+cat("\n2. NRC EMOTION LEXICON RESULTS:\n")
+if(exists("nrc_sentiment") && is.data.frame(nrc_sentiment) && nrow(nrc_sentiment) > 0) {
+  print(nrc_sentiment)
+} else {
+  cat("No matches found in the NRC lexicon\n")
+}
+
+cat("\n3. AFINN SENTIMENT SCORING RESULTS:\n")
+if(exists("afinn_sentiment") && is.data.frame(afinn_sentiment) && nrow(afinn_sentiment) > 0) {
+  cat("Total weighted sentiment:", afinn_sentiment$sum_sentiment[1], "\n")
+  cat("Average sentiment per word:", round(afinn_sentiment$mean_sentiment[1], 2), "\n")
+  cat("Weighted average sentiment:", round(afinn_sentiment$weighted_mean[1], 2), "\n")
+} else {
+  cat("No matches found in the AFINN lexicon\n")
+}
+
+cat("\n4. SYUZHET RESULTS:\n")
+print(syuzhet_summary)
+
+cat("\n5. SENTIMENTR RESULTS:\n")
+print(sentimentr_summary)
+
+cat("\n===== RECOMMENDATIONS =====\n")
+cat("1. Compare results across different methods to gain more robust insights\n")
+cat("2. Consider the context of your lyrics when interpreting sentiment scores\n")
+cat("3. If analyzing multiple songs, compare patterns across songs\n")
+cat("4. For deeper analysis, consider dividing songs into sections (chorus, verse, etc.)\n")
+cat("5. Remember that sentiment analysis is an approximation and may miss nuances of artistic expression\n")
+```
+
